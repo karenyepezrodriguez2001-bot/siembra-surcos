@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Siembra hábitos, cosecha salud · Unidad Educativa Surcos</title>
+<style>
+:root{--g:#2f7d4f;--gl:#e8f4ec;--o:#f4a23a;--t:#1f2a24;--m:#5d6b62;--b:#d6e2da;--bg:#f7faf8}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--t);line-height:1.5}
+header{background:var(--g);color:#fff;padding:18px 16px;text-align:center}header h1{margin:0;font-size:21px}header p{margin:4px 0 0;font-size:13px;opacity:.9}
+main{max-width:720px;margin:0 auto;padding:16px}
+.card{background:#fff;border:1px solid var(--b);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h2,.card h3{margin:0 0 8px;color:var(--g)}
+label{display:block;font-size:14px;font-weight:bold;margin:12px 0 4px}
+input,select,textarea{width:100%;padding:10px;border:1px solid #b9c9bf;border-radius:8px;font-size:15px;font-family:inherit}
+button{background:var(--g);color:#fff;border:0;border-radius:8px;padding:11px 18px;font-size:15px;font-weight:bold;cursor:pointer;margin-top:14px}
+button.sec{background:#fff;color:var(--g);border:1px solid var(--g)}button:disabled{opacity:.5;cursor:default}
+.lock{background:#eee;color:#777}.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:99px;background:var(--gl);color:var(--g);margin:2px 4px 2px 0}
+.tag.w{background:#fdeed7;color:#8a5200}.code{font-size:28px;letter-spacing:4px;font-weight:bold;color:var(--g);background:var(--gl);padding:8px 14px;border-radius:8px;display:inline-block}
+.err{background:#fde8e8;color:#9b1c1c;padding:10px;border-radius:8px;margin-top:12px;font-size:14px}.ok{background:var(--gl);color:var(--g);padding:10px;border-radius:8px;margin-top:12px;font-size:14px}
+.q{margin:14px 0;padding-bottom:10px;border-bottom:1px solid #eef3f0}.q p{margin:0 0 6px;font-weight:bold}.q label{font-weight:normal;display:flex;gap:8px;align-items:flex-start;margin:4px 0}.q input{width:auto;margin-top:3px}
+.small{font-size:13px;color:var(--m)}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:520px){.row{grid-template-columns:1fr}}
+footer{text-align:center;font-size:12px;color:var(--m);padding:20px 16px}.alert{border-left:4px solid var(--o);background:#fff8ec;padding:10px 12px;border-radius:6px;font-size:14px;margin-top:10px}
+.cert{background:#fff;border:10px double #c9962b;padding:34px 30px;text-align:center;font-family:Georgia,"Times New Roman",serif;color:#2a2a2a;margin:14px 0}
+.cert h2{font-size:30px;letter-spacing:3px;color:#2f7d4f;margin:6px 0}.cert .nm{font-size:30px;font-style:italic;border-bottom:1px solid #999;display:inline-block;min-width:60%;padding:4px 14px;margin:10px 0}
+.cert .sg{display:flex;justify-content:space-around;gap:20px;margin-top:46px;font-size:13px}.cert .sg div{flex:1;border-top:1px solid #555;padding-top:6px}
+@media print{header,footer,.noprint{display:none!important}body{background:#fff}main{max-width:none;padding:0}.cert{margin:0;border-width:12px}@page{size:A4 landscape;margin:10mm}}
+</style></head><body>
+<header><h1>Siembra hábitos, cosecha salud</h1><p>Campaña para familias · Unidad Educativa Surcos · TESA</p></header>
+<main id="app"><div class="card">Cargando…</div></main>
+<footer>Proyecto académico de Enfermería, TESA. Sus respuestas son anónimas y se usan solo con fines educativos.</footer>
+<script>
+const URL="https://vokpjjidytayjrzjespr.supabase.co",KEY="sb_publishable_q6YCquh7-JYBEUrl1UCQfA_NDJ5ROGS";
+async function rpc(fn,args){let r;try{r=await fetch(`${URL}/rest/v1/rpc/${fn}`,{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify(args)})}catch(e){throw new Error("Sin conexión. Revise su internet e intente de nuevo.")}
+ const t=await r.text();let d;try{d=JSON.parse(t)}catch(e){d=t}if(!r.ok)throw new Error((d&&d.message)||"Ocurrió un error. Intente de nuevo.");return d}
+const $=s=>document.querySelector(s),app=$("#app");
+const S={code:null,est:null};
+try{S.code=localStorage.getItem("surcos_codigo")}catch(e){}
+const fmt=d=>new Date(d+"T00:00:00").toLocaleDateString("es-EC",{day:"numeric",month:"long"});
+const Q=[["La malnutrición infantil incluye…",["Solo desnutrición","Desnutrición, sobrepeso y obesidad","Solo obesidad"]],
+["Un riesgo frecuente en casa es…",["Tomar agua en las comidas","Premiar con golosinas y comer frente a pantallas","Jugar al aire libre"]],
+["Una consecuencia en el colegio puede ser…",["Más energía","Menor atención y rendimiento","Mejor memoria"]],
+["La mitad de un plato saludable debería ser…",["Frutas y verduras","Arroz o pan","Frituras"]],
+["Actividad física diaria recomendada de 5 a 17 años…",["15 minutos","30 minutos","60 minutos"]],
+["Si nota cambios bruscos de peso en su hijo, lo mejor es…",["Ponerlo a dieta por su cuenta","Consultar en el centro de salud","Compararlo con otros niños"]],
+["¿Cuál es un producto ultraprocesado?",["Fruta fresca","Galletas y snacks empacados","Lentejas cocidas"]],
+["La mejor bebida para acompañar la lonchera es…",["Gaseosa","Jugo industrializado","Agua simple"]],
+["Una señal de alerta para consultar es…",["Que el niño no crece como se espera o se cansa con facilidad","Que juega mucho","Que come fruta"]],
+["Durante las comidas familiares conviene…",["Tener la televisión o el celular encendidos","Apagar las pantallas","Comer apurados"]]];
+const L=["A","B","C"];
+const W={1:{t:"Agua primero",l:[["¿Qué es la malnutrición infantil?","Es un desequilibrio entre lo que el niño come y lo que su cuerpo necesita. Incluye la desnutrición, pero también el sobrepeso y la obesidad, y las tres pueden verse en una misma escuela."],["Riesgos en el día a día","Premiar con golosinas, comer frente al televisor o el celular, tomar bebidas azucaradas en lugar de agua y pasar muchas horas sentado aumentan el riesgo."]],r:"Esta semana, su hijo lleva una botella de agua a la escuela todos los días y el agua reemplaza a los jugos y gaseosas en casa."},
+2:{t:"Lonchera arcoíris",l:[["Efectos en su hijo","Una mala alimentación puede causar cansancio, menor atención en clase, defensas bajas y problemas de salud que se arrastran a la adultez."],["Alimentación en casa","La mitad del plato debe ser frutas y verduras; la otra mitad se reparte entre cereales o tubérculos y proteínas. Prefiera alimentos frescos antes que ultraprocesados."]],r:"Cada día, la lonchera incluye una fruta o verdura de un color distinto. Pueden armar juntos el “arcoíris” de la semana."},
+3:{t:"Familia en movimiento",l:[["Movimiento en familia","Los niños de 5 a 17 años necesitan al menos 60 minutos de actividad al día. No tiene que ser deporte formal: caminar, bailar, saltar la cuerda o jugar en el parque suman."]],r:"Dediquen al menos 20 minutos diarios a jugar o moverse en familia: caminar, bailar, jugar a la pelota o saltar la cuerda."},
+4:{t:"Cocinamos juntos",l:[["Su rol como familia","Usted es el mejor ejemplo para su hijo. Cuando la familia come en la mesa, sin pantallas y con comida casera, el niño aprende hábitos que le duran toda la vida."]],r:"Cocinen juntos una receta sencilla con verduras y coman en familia con las pantallas apagadas."}};
+const H=[["agua","Días que su hijo llevó botella con agua"],["lonchera","Días que la lonchera incluyó fruta o verdura"],["juego","Días con al menos 20 minutos de juego activo"],["pantallas","Comidas familiares con las pantallas apagadas"]];
+function sel(id,from,to){let o='<option value="">Elija…</option>';for(let i=from;i<=to;i++)o+=`<option>${i}</option>`;return`<select id="${id}">${o}</select>`}
+function opt(id,arr){return`<select id="${id}"><option value="">Elija…</option>${arr.map(x=>`<option>${x}</option>`).join("")}</select>`}
+const msg=(c,t)=>`<div class="${c}">${t}</div>`;
+function show(h){app.innerHTML=h;window.scrollTo(0,0)}
+function busy(b,on){b.disabled=on;b.dataset.t=b.dataset.t||b.textContent;b.textContent=on?"Guardando…":b.dataset.t}
+async function load(){try{S.est=await rpc("obtener_estado",{p_codigo:S.code});if(!S.est.existe){S.code=null;try{localStorage.removeItem("surcos_codigo")}catch(e){}return start()}home()}catch(e){show(`<div class="card">${msg("err",e.message)}<button onclick="load()">Reintentar</button></div>`)}}
+function start(){show(`<div class="card"><h2>Bienvenido/a</h2><p>Esta campaña de 6 semanas le ayudará a cuidar la alimentación y los hábitos de su hijo. Cada semana se habilita sola en su fecha.</p>
+<h3 style="margin-top:16px">Ya me registré</h3><label>Mi código de participante</label><input id="cod" placeholder="Ej.: A3F9K2" maxlength="6" style="text-transform:uppercase"><button onclick="entrar()">Entrar</button><div id="m1"></div></div>
+<div class="card"><h3>Soy nuevo/a: registrarme</h3>
+<div class="alert"><b>Consentimiento informado.</b> La participación es voluntaria y anónima. No se pedirá el nombre de su hijo ni datos de salud. Los resultados se usan solo con fines académicos y puede retirarse cuando desee.</div>
+<label style="display:flex;gap:8px;font-weight:normal"><input type="checkbox" id="cons" style="width:auto;margin-top:4px">Acepto participar voluntariamente en esta campaña.</label>
+<div class="row"><div><label>Edad</label>${opt("edad",["Menor de 25","25 a 34","35 a 44","45 o más"])}</div><div><label>Sexo</label>${opt("sexo",["Femenino","Masculino","Otro"])}</div>
+<div><label>Parentesco con el estudiante</label>${opt("par",["Madre","Padre","Abuelo/a","Otro representante"])}</div><div><label>Nivel de instrucción</label>${opt("ins",["Primaria","Secundaria","Superior"])}</div>
+<div><label>Grado de su hijo/a</label>${opt("gra",["1.º","2.º","3.º","4.º","5.º","6.º","7.º"])}</div></div>
+<label>Correo electrónico (para enviarle los recordatorios semanales)</label><input id="cor" type="email" autocomplete="email" placeholder="nombre@correo.com"><label>WhatsApp (opcional)</label><input id="wha" type="tel">
+<button onclick="registrar()">Registrarme</button><div id="m2"></div></div>`)}
+async function entrar(){const c=$("#cod").value.trim().toUpperCase();if(c.length<4)return $("#m1").innerHTML=msg("err","Escriba su código.");S.code=c;try{localStorage.setItem("surcos_codigo",c)}catch(e){}load()}
+async function registrar(){const g=i=>$(i).value;if(!$("#cons").checked)return $("#m2").innerHTML=msg("err","Debe aceptar el consentimiento para continuar.");
+ if(!g("#edad")||!g("#sexo")||!g("#par")||!g("#ins")||!g("#gra"))return $("#m2").innerHTML=msg("err","Complete todas las opciones.");
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(g("#cor").trim()))return $("#m2").innerHTML=msg("err","Escriba un correo electrónico válido.");
+ const b=event.target;busy(b,true);try{const c=await rpc("registrar_participante",{p_consentimiento:true,p_correo:g("#cor"),p_whatsapp:g("#wha"),p_edad:g("#edad"),p_sexo:g("#sexo"),p_parentesco:g("#par"),p_instruccion:g("#ins"),p_grado:g("#gra")});
+ S.code=c;try{localStorage.setItem("surcos_codigo",c)}catch(e){}show(`<div class="card" style="text-align:center"><h2>¡Registro listo!</h2><p>Este es su código de participante. <b>Anótelo o tome una captura</b>: lo necesitará para volver a entrar.</p><div class="code">${c}</div><br><button onclick="load()">Continuar</button></div>`)}catch(e){busy(b,false);$("#m2").innerHTML=msg("err",e.message)}}
+function salir(){S.code=null;try{localStorage.removeItem("surcos_codigo")}catch(e){}start()}
+function home(){const e=S.est,sm=e.semanas;let h=`<div class="card"><span class="small">Su código</span><br><span class="code">${S.code}</span> <button class="sec" style="margin:0 0 0 8px;padding:6px 12px" onclick="salir()">Salir</button></div>`;
+ sm.forEach(s=>{const n=s.numero,ab=s.abierta;let tags="";
+  if(n==0)tags=e.pretest_hecho?'<span class="tag">Pretest completado</span>':'<span class="tag w">Pretest pendiente</span>';
+  else if(n==5)tags=(e.postest_hecho?'<span class="tag">Evaluación final completada</span>':'<span class="tag w">Evaluación pendiente</span>')+(e.satisfaccion_hecha?'<span class="tag">Encuesta enviada</span>':'');
+  else tags=(s.leccion_vista?'<span class="tag">Lección vista</span>':'')+(s.reto_completado?'<span class="tag">Reto completado</span>':'')+(s.habitos_enviados?'<span class="tag">Hábitos registrados</span>':'');
+  h+=`<div class="card"><h3>${n==0?"Semana 0":"Semana "+n}: ${s.titulo.split(": ").pop()}</h3><div class="small">${fmt(s.fecha_apertura)} al ${fmt(s.fecha_cierre)}</div>${ab?tags+`<br><button onclick="abrir(${n})">${n==0||n==5?"Ir a la evaluación":"Abrir semana"}</button>`:`<br><button class="lock" disabled>Se abre el ${fmt(s.fecha_apertura)}</button>`}</div>`});
+ h+=certCard();show(h)}
+function abrir(n){if(n==0)return test("pretest");if(n==5)return test("postest",true);semana(n)}
+async function semana(n){const w=W[n],s=S.est.semanas.find(x=>x.numero==n);
+ if(!s.leccion_vista)rpc("marcar_progreso",{p_codigo:S.code,p_semana:n,p_leccion:true,p_reto:false}).catch(()=>{});
+ let h=`<div class="card"><button class="sec" style="margin:0 0 12px" onclick="load()">← Volver</button><h2>Semana ${n}: ${w.t}</h2></div>`;
+ w.l.forEach(x=>h+=`<div class="card"><h3>${x[0]}</h3><p>${x[1]}</p></div>`);
+ h+=`<div class="card"><h3>Reto de la semana</h3><p>${w.r}</p><button id="rb" onclick="reto(${n})" ${s.reto_completado?"disabled":""}>${s.reto_completado?"Reto completado ✓":"Completé el reto"}</button><div id="mr"></div></div>
+ <div class="card"><h3>Registro de la semana</h3><p class="small">Cuéntenos cómo le fue esta semana (de 0 a 7).</p>${H.map(x=>`<label>${x[1]}</label>${sel("h_"+x[0],0,7)}`).join("")}<button onclick="habitos(${n})">${s.habitos_enviados?"Actualizar registro":"Enviar registro"}</button><div id="mh"></div></div>
+ <div class="alert">Si nota cambios bruscos de peso, cansancio constante o que su hijo no crece como se espera, consulte en su centro de salud.</div>`;
+ show(h)}
+async function reto(n){const b=$("#rb");busy(b,true);try{await rpc("marcar_progreso",{p_codigo:S.code,p_semana:n,p_leccion:true,p_reto:true});b.textContent="Reto completado ✓";$("#mr").innerHTML=msg("ok","¡Excelente! Reto registrado.");S.est.semanas.find(x=>x.numero==n).reto_completado=true}catch(e){busy(b,false);$("#mr").innerHTML=msg("err",e.message)}}
+async function habitos(n){const v=H.map(x=>$("#h_"+x[0]).value);if(v.some(x=>x===""))return $("#mh").innerHTML=msg("err","Responda las cuatro preguntas.");const b=event.target;busy(b,true);
+ try{await rpc("guardar_habitos",{p_codigo:S.code,p_semana:n,p_agua:+v[0],p_lonchera:+v[1],p_juego:+v[2],p_pantallas:+v[3]});S.est.semanas.find(x=>x.numero==n).habitos_enviados=true;busy(b,false);$("#mh").innerHTML=msg("ok","Registro guardado. ¡Gracias!")}catch(e){busy(b,false);$("#mh").innerHTML=msg("err",e.message)}}
+function test(m,post){const e=S.est,hecho=post?e.postest_hecho:e.pretest_hecho;
+ let h=`<div class="card"><button class="sec" style="margin:0 0 12px" onclick="load()">← Volver</button><h2>${post?"Evaluación final":"Evaluación inicial"}</h2>`;
+ if(hecho){h+=msg("ok","Ya completó esta evaluación. ¡Gracias!")+(post&&e.postest_puntaje!=null?`<p>Su puntaje: <b>${e.postest_puntaje} de 10</b></p>`:"")+"</div>";if(post)h+=sat();return show(h)}
+ h+=`<p class="small">10 preguntas, una respuesta por pregunta. No hay respuestas buenas o malas para su persona: sirve para mejorar la campaña.</p>`;
+ Q.forEach((q,i)=>{h+=`<div class="q"><p>${i+1}. ${q[0]}</p>${q[1].map((o,j)=>`<label><input type="radio" name="q${i}" value="${L[j]}">${L[j]}) ${o}</label>`).join("")}</div>`});
+ h+=`<button onclick="enviarTest('${m}')">Enviar respuestas</button><div id="mt"></div></div>`;show(h)}
+async function enviarTest(m){const r=Q.map((_,i)=>{const x=document.querySelector(`input[name=q${i}]:checked`);return x?x.value:null});if(r.includes(null))return $("#mt").innerHTML=msg("err","Responda las 10 preguntas.");
+ const b=event.target;busy(b,true);try{const d=await rpc("guardar_conocimientos",{p_codigo:S.code,p_momento:m,p_resp:r});S.est=await rpc("obtener_estado",{p_codigo:S.code});
+ show(`<div class="card" style="text-align:center"><h2>¡Gracias!</h2>${m=="postest"?`<p>Su puntaje: <b>${d.puntaje} de 10</b></p>`:"<p>Sus respuestas fueron guardadas. La semana 1 se abrirá en su fecha.</p>"}<button onclick="${m=="postest"?"test('postest',true)":"load()"}">Continuar</button></div>`)}catch(e){busy(b,false);$("#mt").innerHTML=msg("err",e.message)}}
+function sat(){if(S.est.satisfaccion_hecha)return"";const o=id=>sel(id,1,5);return`<div class="card"><h3>Encuesta de satisfacción</h3><p class="small">1 = muy bajo, 5 = muy alto</p><label>¿Qué tan útil le pareció la campaña?</label>${o("s1")}<label>¿Qué tan claros fueron los contenidos?</label>${o("s2")}<label>¿Recomendaría esta campaña a otras familias?</label>${o("s3")}<label>¿Qué mejoraría? (opcional)</label><textarea id="s4" rows="3" maxlength="1000"></textarea><button onclick="enviarSat()">Enviar encuesta</button><div id="ms"></div></div>`}
+async function enviarSat(){const v=["#s1","#s2","#s3"].map(i=>$(i).value);if(v.includes(""))return $("#ms").innerHTML=msg("err","Califique los tres aspectos.");const b=event.target;busy(b,true);
+ try{await rpc("guardar_satisfaccion",{p_codigo:S.code,p_utilidad:+v[0],p_claridad:+v[1],p_recomendaria:+v[2],p_comentario:$("#s4").value});S.est.satisfaccion_hecha=true;show(`<div class="card" style="text-align:center"><h2>¡Gracias por participar!</h2><p>Su familia completó la campaña “Siembra hábitos, cosecha salud”.</p><button onclick="load()">Volver al inicio</button></div>`)}catch(e){busy(b,false);$("#ms").innerHTML=msg("err",e.message)}}
+const MIN_SEM=3;
+function certFalta(){const e=S.est,n=e.semanas.filter(x=>x.numero>=1&&x.numero<=4&&x.habitos_enviados).length,f=[];
+ if(!e.pretest_hecho)f.push("la evaluación inicial (Semana 0)");if(n<MIN_SEM)f.push(`el registro de hábitos en ${MIN_SEM-n} semana${MIN_SEM-n>1?"s":""} más (de las semanas 1 a 4)`);
+ if(!e.postest_hecho)f.push("la evaluación final (Semana 5)");if(!e.satisfaccion_hecha)f.push("la encuesta de satisfacción (Semana 5)");return f}
+function certCard(){const f=certFalta();
+ return f.length?`<div class="card"><h3>Certificado de participación</h3><p class="small">Se habilita al completar: ${f.join("; ")}.</p></div>`
+ :`<div class="card" style="border-color:#c9962b"><h3>¡Completó la campaña!</h3><p>Ya puede obtener su certificado de participación.</p><button onclick="cert()">Obtener mi certificado</button></div>`}
+function cert(){show(`<div class="card noprint"><button class="sec" style="margin:0 0 12px" onclick="load()">← Volver</button><h2>Su certificado</h2><p class="small">Escriba el nombre que desea que aparezca. El nombre no se guarda ni se envía: se queda solo en su dispositivo.</p>
+<label>Nombre completo</label><input id="cn" maxlength="70" placeholder="Nombre y apellido" oninput="document.getElementById('cnn').textContent=this.value||'__________________'">
+<p class="small">Para guardarlo: pulse el botón y elija “Guardar como PDF” como destino.</p><button onclick="window.print()">Descargar o imprimir certificado</button></div>
+<div class="cert" id="certificado"><div style="font-size:14px;letter-spacing:2px">UNIDAD EDUCATIVA SURCOS · INSTITUTO SUPERIOR TECNOLÓGICO SAN ANTONIO (TESA)</div>
+<h2>CERTIFICADO DE PARTICIPACIÓN</h2><p style="font-size:16px;margin:6px 0">Se otorga a</p><div class="nm" id="cnn">__________________</div>
+<p style="font-size:16px;line-height:1.6;max-width:640px;margin:10px auto">por haber completado la campaña educativa virtual <b>“Siembra hábitos, cosecha salud”</b> sobre prevención de la malnutrición infantil y promoción de estilos de vida saludables, de seis semanas de duración.</p>
+<p style="font-size:14px;margin-top:14px">Quito, ${new Date().toLocaleDateString("es-EC",{day:"numeric",month:"long",year:"numeric"})}</p>
+<div class="sg"><div>Karen Liseth Yépez Rodríguez<br>Estudiante de Enfermería, TESA</div><div>Jacqueline Janeth Zambrano Cepeda<br>Estudiante de Enfermería, TESA</div><div>PhD. Marco Pérez<br>Rector, Unidad Educativa Surcos</div></div></div>`)}
+
+S.code?load():start();
+</script></body></html>
