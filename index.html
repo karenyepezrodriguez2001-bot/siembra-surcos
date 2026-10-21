@@ -60,11 +60,12 @@ function start(){show(`<div class="card"><h2>Bienvenido/a</h2><p>Esta campaña d
 <div class="row"><div><label>Edad</label>${opt("edad",["Menor de 25","25 a 34","35 a 44","45 o más"])}</div><div><label>Sexo</label>${opt("sexo",["Femenino","Masculino","Otro"])}</div>
 <div><label>Parentesco con el estudiante</label>${opt("par",["Madre","Padre","Abuelo/a","Otro representante"])}</div><div><label>Nivel de instrucción</label>${opt("ins",["Primaria","Secundaria","Superior"])}</div>
 <div><label>Grado de su hijo/a</label>${opt("gra",["1.º","2.º","3.º","4.º","5.º","6.º","7.º"])}</div></div>
-<label>Correo electrónico (para recordatorios; opcional)</label><input id="cor" type="email"><label>WhatsApp (opcional)</label><input id="wha" type="tel">
+<label>Correo electrónico (para enviarle los recordatorios semanales)</label><input id="cor" type="email" autocomplete="email" placeholder="nombre@correo.com"><label>WhatsApp (opcional)</label><input id="wha" type="tel">
 <button onclick="registrar()">Registrarme</button><div id="m2"></div></div>`)}
 async function entrar(){const c=$("#cod").value.trim().toUpperCase();if(c.length<4)return $("#m1").innerHTML=msg("err","Escriba su código.");S.code=c;try{localStorage.setItem("surcos_codigo",c)}catch(e){}load()}
 async function registrar(){const g=i=>$(i).value;if(!$("#cons").checked)return $("#m2").innerHTML=msg("err","Debe aceptar el consentimiento para continuar.");
  if(!g("#edad")||!g("#sexo")||!g("#par")||!g("#ins")||!g("#gra"))return $("#m2").innerHTML=msg("err","Complete todas las opciones.");
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(g("#cor").trim()))return $("#m2").innerHTML=msg("err","Escriba un correo electrónico válido.");
  const b=event.target;busy(b,true);try{const c=await rpc("registrar_participante",{p_consentimiento:true,p_correo:g("#cor"),p_whatsapp:g("#wha"),p_edad:g("#edad"),p_sexo:g("#sexo"),p_parentesco:g("#par"),p_instruccion:g("#ins"),p_grado:g("#gra")});
  S.code=c;try{localStorage.setItem("surcos_codigo",c)}catch(e){}show(`<div class="card" style="text-align:center"><h2>¡Registro listo!</h2><p>Este es su código de participante. <b>Anótelo o tome una captura</b>: lo necesitará para volver a entrar.</p><div class="code">${c}</div><br><button onclick="load()">Continuar</button></div>`)}catch(e){busy(b,false);$("#m2").innerHTML=msg("err",e.message)}}
 function salir(){S.code=null;try{localStorage.removeItem("surcos_codigo")}catch(e){}start()}
