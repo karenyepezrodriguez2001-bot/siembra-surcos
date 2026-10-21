@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Panel de la investigadora · Siembra hábitos</title>
+<style>
+:root{--g:#2f7d4f;--gl:#e8f4ec;--b:#d6e2da;--m:#5d6b62}*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f7f5;color:#1f2a24;line-height:1.45}
+header{background:#1f4d33;color:#fff;padding:16px;text-align:center}header h1{margin:0;font-size:20px}header p{margin:3px 0 0;font-size:13px;opacity:.85}
+main{max-width:980px;margin:0 auto;padding:16px}.card{background:#fff;border:1px solid var(--b);border-radius:12px;padding:16px;margin-bottom:14px}
+h2{margin:0 0 10px;font-size:17px;color:var(--g)}input{padding:10px;border:1px solid #b9c9bf;border-radius:8px;font-size:15px;width:100%;max-width:320px}
+button{background:var(--g);color:#fff;border:0;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:bold;cursor:pointer;margin:4px 6px 4px 0}button.s{background:#fff;color:var(--g);border:1px solid var(--g)}
+.err{background:#fde8e8;color:#9b1c1c;padding:10px;border-radius:8px;margin-top:10px;font-size:14px}.ok{color:var(--g);font-weight:bold;font-size:13px}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.k{background:var(--gl);border-radius:10px;padding:12px;text-align:center}.k b{display:block;font-size:26px;color:var(--g)}.k span{font-size:12px;color:var(--m)}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border:1px solid var(--b);padding:6px 8px;text-align:center;white-space:nowrap}th{background:var(--g);color:#fff}td.l{text-align:left}
+.step{font-size:13px;color:var(--m);margin:2px 0 8px}
+</style></head><body>
+<header><h1>Panel de la investigadora</h1><p>Campaña “Siembra hábitos, cosecha salud” · acceso privado</p></header>
+<main id="app"></main>
+<script>
+const URL="https://vokpjjidytayjrzjespr.supabase.co",KEY="sb_publishable_q6YCquh7-JYBEUrl1UCQfA_NDJ5ROGS";
+const $=s=>document.querySelector(s),app=$("#app");let CLAVE="",F=[];
+async function rpc(fn,a){let r;try{r=await fetch(`${URL}/rest/v1/rpc/${fn}`,{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify(a)})}catch(e){throw new Error("Sin conexión")}
+ const t=await r.text();let d;try{d=JSON.parse(t)}catch(e){d=t}if(!r.ok)throw new Error((d&&d.message)||"Error");return d}
+function login(m){app.innerHTML=`<div class="card"><h2>Ingreso</h2><p class="step">Escriba la clave que definió al crear el panel.</p><input id="k" type="password" placeholder="Clave" autocomplete="current-password"> <button onclick="entrar()">Entrar</button>${m?`<div class="err">${m}</div>`:""}</div>`;$("#k").addEventListener("keydown",e=>{if(e.key=="Enter")entrar()})}
+async function entrar(){CLAVE=$("#k").value;const b=document.querySelector("button");b.disabled=true;b.textContent="Verificando…";try{const d=await rpc("admin_exportar",{p_clave:CLAVE});F=d.filas||[];panel(d.generado)}catch(e){login(e.message)}}
+const tx=v=>v==null?"":String(v).replace(/[\t\r\n]+/g," ");
+const prog=(f,s)=>(f.progreso||[]).find(x=>x.s==s)||{};
+const hab=(f,s)=>((f.habitos||[]).find(x=>x.s==s)||{}).v;
+const S={
+ "Participantes (pegar en A6)":()=>F.map(f=>[f.codigo,f.edad,f.sexo,f.parentesco,f.instruccion,f.grado,"",(f.progreso||[]).filter(x=>x.r).length]),
+ "Conocimientos: código + pretest (pegar en A6)":()=>F.map(f=>[f.codigo].concat(f.pre||Array(10).fill(""))),
+ "Conocimientos: postest (pegar en N6)":()=>F.map(f=>f.post||Array(10).fill("")),
+ "Hábitos semanas 1 a 4 (pegar en A6)":()=>F.map(f=>{let r=[f.codigo];for(let s=1;s<=4;s++)r=r.concat(hab(f,s)||["","","",""]);return r}),
+ "Satisfacción (pegar en A6)":()=>F.map(f=>[f.codigo].concat(f.sat||["","","",""]))};
+function copiar(k,el){const t=S[k]().map(r=>r.map(tx).join("\t")).join("\n");navigator.clipboard.writeText(t).then(()=>{el.nextElementSibling.textContent="Copiado ✓ ("+F.length+" filas)"}).catch(()=>{el.nextElementSibling.textContent="No se pudo copiar"})}
+function panel(gen){const n=F.length,c=a=>F.filter(a).length;
+ const k=[["Registrados",n],["Pretest",c(f=>f.pre)],["Postest",c(f=>f.post)],["Encuesta",c(f=>f.sat)],["Completaron todo",c(f=>f.pre&&f.post&&f.sat)]];
+ let h=`<div class="card"><h2>Resumen</h2><div class="kp">${k.map(x=>`<div class="k"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("")}</div><p class="step">Actualizado: ${new Date(gen).toLocaleString("es-EC")} <button class="s" onclick="entrarAuto()">Actualizar</button> <button class="s" onclick="CLAVE='';F=[];login()">Cerrar sesión</button></p></div>`;
+ h+=`<div class="card"><h2>Avance por semana</h2><div class="tw"><table><tr><th>Semana</th><th>Lección vista</th><th>Reto completado</th><th>Hábitos enviados</th></tr>${[1,2,3,4].map(s=>`<tr><td>${s}</td><td>${c(f=>prog(f,s).l)}</td><td>${c(f=>prog(f,s).r)}</td><td>${c(f=>hab(f,s))}</td></tr>`).join("")}</table></div></div>`;
+ h+=`<div class="card"><h2>Pasar los datos a su Excel</h2><p class="step">Todos los bloques salen en el mismo orden de participantes. Pulse “Copiar”, abra la hoja indicada en <b>Tabulacion_Campana_Surcos.xlsx</b>, haga clic en la celda que dice el título (A6 o N6) y pegue con Ctrl + V. Las columnas grises de fórmulas no se tocan. Vuelva a pegar completo cada vez que actualice (sobrescribe, no duplica).</p>${Object.keys(S).map(k=>`<div><button onclick="copiar(this.dataset.k,this)" data-k="${k}">Copiar</button><span class="ok"></span> ${k}</div>`).join("")}<p class="step">La columna “Asistencia a la charla” de Participantes queda vacía: la plataforma no la registra, complétela a mano con la lista de asistencia de la sesión en vivo.</p></div>`;
+ h+=`<div class="card"><h2>Participantes</h2><div class="tw"><table><tr><th>Código</th><th>Registro</th><th>Pretest</th><th>S1</th><th>S2</th><th>S3</th><th>S4</th><th>Postest</th><th>Encuesta</th><th>Correo</th><th>WhatsApp</th></tr>${F.map(f=>`<tr><td class="l"><b>${f.codigo}</b></td><td>${new Date(f.registrado).toLocaleDateString("es-EC")}</td><td>${f.pre?"✓":"–"}</td>${[1,2,3,4].map(s=>`<td>${hab(f,s)?"✓":"–"}</td>`).join("")}<td>${f.post?"✓":"–"}</td><td>${f.sat?"✓":"–"}</td><td class="l">${f.correo||""}</td><td class="l">${f.whatsapp||""}</td></tr>`).join("")||'<tr><td colspan="11">Aún no hay participantes.</td></tr>'}</table></div><p class="step">Correo y WhatsApp son solo para enviar recordatorios; no se copian al Excel de la tesis.</p></div>`;
+ app.innerHTML=h}
+async function entrarAuto(){try{const d=await rpc("admin_exportar",{p_clave:CLAVE});F=d.filas||[];panel(d.generado)}catch(e){login(e.message)}}
+login();
+</script></body></html>
