@@ -18,6 +18,10 @@ button.sec{background:#fff;color:var(--g);border:1px solid var(--g)}button:disab
 .q{margin:14px 0;padding-bottom:10px;border-bottom:1px solid #eef3f0}.q p{margin:0 0 6px;font-weight:bold}.q label{font-weight:normal;display:flex;gap:8px;align-items:flex-start;margin:4px 0}.q input{width:auto;margin-top:3px}
 .small{font-size:13px;color:var(--m)}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:520px){.row{grid-template-columns:1fr}}
 footer{text-align:center;font-size:12px;color:var(--m);padding:20px 16px}.alert{border-left:4px solid var(--o);background:#fff8ec;padding:10px 12px;border-radius:6px;font-size:14px;margin-top:10px}
+.cert{background:#fff;border:10px double #c9962b;padding:34px 30px;text-align:center;font-family:Georgia,"Times New Roman",serif;color:#2a2a2a;margin:14px 0}
+.cert h2{font-size:30px;letter-spacing:3px;color:#2f7d4f;margin:6px 0}.cert .nm{font-size:30px;font-style:italic;border-bottom:1px solid #999;display:inline-block;min-width:60%;padding:4px 14px;margin:10px 0}
+.cert .sg{display:flex;justify-content:space-around;gap:20px;margin-top:46px;font-size:13px}.cert .sg div{flex:1;border-top:1px solid #555;padding-top:6px}
+@media print{header,footer,.noprint{display:none!important}body{background:#fff}main{max-width:none;padding:0}.cert{margin:0;border-width:12px}@page{size:A4 landscape;margin:10mm}}
 </style></head><body>
 <header><h1>Siembra hábitos, cosecha salud</h1><p>Campaña para familias · Unidad Educativa Surcos · TESA</p></header>
 <main id="app"><div class="card">Cargando…</div></main>
@@ -75,7 +79,7 @@ function home(){const e=S.est,sm=e.semanas;let h=`<div class="card"><span class=
   else if(n==5)tags=(e.postest_hecho?'<span class="tag">Evaluación final completada</span>':'<span class="tag w">Evaluación pendiente</span>')+(e.satisfaccion_hecha?'<span class="tag">Encuesta enviada</span>':'');
   else tags=(s.leccion_vista?'<span class="tag">Lección vista</span>':'')+(s.reto_completado?'<span class="tag">Reto completado</span>':'')+(s.habitos_enviados?'<span class="tag">Hábitos registrados</span>':'');
   h+=`<div class="card"><h3>${n==0?"Semana 0":"Semana "+n}: ${s.titulo.split(": ").pop()}</h3><div class="small">${fmt(s.fecha_apertura)} al ${fmt(s.fecha_cierre)}</div>${ab?tags+`<br><button onclick="abrir(${n})">${n==0||n==5?"Ir a la evaluación":"Abrir semana"}</button>`:`<br><button class="lock" disabled>Se abre el ${fmt(s.fecha_apertura)}</button>`}</div>`});
- show(h)}
+ h+=certCard();show(h)}
 function abrir(n){if(n==0)return test("pretest");if(n==5)return test("postest",true);semana(n)}
 async function semana(n){const w=W[n],s=S.est.semanas.find(x=>x.numero==n);
  if(!s.leccion_vista)rpc("marcar_progreso",{p_codigo:S.code,p_semana:n,p_leccion:true,p_reto:false}).catch(()=>{});
@@ -100,5 +104,21 @@ async function enviarTest(m){const r=Q.map((_,i)=>{const x=document.querySelecto
 function sat(){if(S.est.satisfaccion_hecha)return"";const o=id=>sel(id,1,5);return`<div class="card"><h3>Encuesta de satisfacción</h3><p class="small">1 = muy bajo, 5 = muy alto</p><label>¿Qué tan útil le pareció la campaña?</label>${o("s1")}<label>¿Qué tan claros fueron los contenidos?</label>${o("s2")}<label>¿Recomendaría esta campaña a otras familias?</label>${o("s3")}<label>¿Qué mejoraría? (opcional)</label><textarea id="s4" rows="3" maxlength="1000"></textarea><button onclick="enviarSat()">Enviar encuesta</button><div id="ms"></div></div>`}
 async function enviarSat(){const v=["#s1","#s2","#s3"].map(i=>$(i).value);if(v.includes(""))return $("#ms").innerHTML=msg("err","Califique los tres aspectos.");const b=event.target;busy(b,true);
  try{await rpc("guardar_satisfaccion",{p_codigo:S.code,p_utilidad:+v[0],p_claridad:+v[1],p_recomendaria:+v[2],p_comentario:$("#s4").value});S.est.satisfaccion_hecha=true;show(`<div class="card" style="text-align:center"><h2>¡Gracias por participar!</h2><p>Su familia completó la campaña “Siembra hábitos, cosecha salud”.</p><button onclick="load()">Volver al inicio</button></div>`)}catch(e){busy(b,false);$("#ms").innerHTML=msg("err",e.message)}}
+const MIN_SEM=3;
+function certFalta(){const e=S.est,n=e.semanas.filter(x=>x.numero>=1&&x.numero<=4&&x.habitos_enviados).length,f=[];
+ if(!e.pretest_hecho)f.push("la evaluación inicial (Semana 0)");if(n<MIN_SEM)f.push(`el registro de hábitos en ${MIN_SEM-n} semana${MIN_SEM-n>1?"s":""} más (de las semanas 1 a 4)`);
+ if(!e.postest_hecho)f.push("la evaluación final (Semana 5)");if(!e.satisfaccion_hecha)f.push("la encuesta de satisfacción (Semana 5)");return f}
+function certCard(){const f=certFalta();
+ return f.length?`<div class="card"><h3>Certificado de participación</h3><p class="small">Se habilita al completar: ${f.join("; ")}.</p></div>`
+ :`<div class="card" style="border-color:#c9962b"><h3>¡Completó la campaña!</h3><p>Ya puede obtener su certificado de participación.</p><button onclick="cert()">Obtener mi certificado</button></div>`}
+function cert(){show(`<div class="card noprint"><button class="sec" style="margin:0 0 12px" onclick="load()">← Volver</button><h2>Su certificado</h2><p class="small">Escriba el nombre que desea que aparezca. El nombre no se guarda ni se envía: se queda solo en su dispositivo.</p>
+<label>Nombre completo</label><input id="cn" maxlength="70" placeholder="Nombre y apellido" oninput="document.getElementById('cnn').textContent=this.value||'__________________'">
+<p class="small">Para guardarlo: pulse el botón y elija “Guardar como PDF” como destino.</p><button onclick="window.print()">Descargar o imprimir certificado</button></div>
+<div class="cert" id="certificado"><div style="font-size:14px;letter-spacing:2px">UNIDAD EDUCATIVA SURCOS · INSTITUTO SUPERIOR TECNOLÓGICO SAN ANTONIO (TESA)</div>
+<h2>CERTIFICADO DE PARTICIPACIÓN</h2><p style="font-size:16px;margin:6px 0">Se otorga a</p><div class="nm" id="cnn">__________________</div>
+<p style="font-size:16px;line-height:1.6;max-width:640px;margin:10px auto">por haber completado la campaña educativa virtual <b>“Siembra hábitos, cosecha salud”</b> sobre prevención de la malnutrición infantil y promoción de estilos de vida saludables, de seis semanas de duración.</p>
+<p style="font-size:14px;margin-top:14px">Quito, ${new Date().toLocaleDateString("es-EC",{day:"numeric",month:"long",year:"numeric"})}</p>
+<div class="sg"><div>Karen Liseth Yépez Rodríguez<br>Estudiante de Enfermería, TESA</div><div>Jacqueline Janeth Zambrano Cepeda<br>Estudiante de Enfermería, TESA</div><div>PhD. Marco Pérez<br>Rector, Unidad Educativa Surcos</div></div></div>`)}
+
 S.code?load():start();
 </script></body></html>
