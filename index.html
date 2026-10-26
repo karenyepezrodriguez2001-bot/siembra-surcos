@@ -34,13 +34,16 @@ button.sec{background:#fff;color:var(--g);border:1px solid var(--g)}button:disab
 .mascot .face{font-size:44px;background:#fff;border-radius:50%;width:70px;height:70px;display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.2);animation:bob 3s ease-in-out infinite}
 .mascot .bub{background:#fff;color:var(--t);padding:9px 14px;border-radius:14px 14px 14px 2px;font-size:14px;max-width:270px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
 .mascot.hop .face{animation:hop .5s}@keyframes hop{40%{transform:translateY(-16px) scale(1.12)}}
+.pops b{display:inline-block}.pops b.bump{animation:bump .3s}@keyframes bump{50%{transform:scale(1.6)}}
+.pf{position:fixed;z-index:98;pointer-events:none;font-weight:bold;font-size:20px;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.5);animation:pf .8s ease-out forwards}@keyframes pf{to{transform:translateY(-50px);opacity:0}}
+.sp{position:fixed;z-index:98;pointer-events:none;font-size:16px;animation:sp .6s ease-out forwards}@keyframes sp{to{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
 .pops{display:inline-block;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.55);border-radius:99px;padding:5px 14px;font-size:13px;margin:4px 0}
 .shell{flex:1;position:relative;z-index:1;display:grid;grid-template-columns:1fr minmax(0,720px) 1fr;align-items:start}
 .side{position:sticky;top:16px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 0}
 .side .big{font-size:58px;cursor:pointer;transition:transform .25s;animation:bob 4s ease-in-out infinite;user-select:none}.side .big:nth-child(2n){animation-delay:.8s}.side .big:hover{transform:scale(1.25) rotate(10deg)}.side .big.w{animation:hop .6s}
 .side .sun{animation:spin 18s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:1000px){.shell{grid-template-columns:1fr}.side{display:none}}
-#fl{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+#fl{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden}
 .bb{all:unset;position:absolute;top:105vh;font-size:34px;cursor:pointer;pointer-events:auto;animation:sube linear infinite;filter:drop-shadow(0 3px 3px rgba(0,0,0,.15))}
 @keyframes sube{from{top:105vh;transform:rotate(0)}to{top:-12vh;transform:rotate(40deg)}}
 .bb.pp{animation:pop .5s forwards!important}@keyframes pop{50%{transform:scale(1.8);opacity:.8}to{transform:scale(0);opacity:0}}
@@ -198,8 +201,10 @@ function wig(el){el.classList.add("w");setTimeout(()=>el.classList.remove("w"),6
  function spawn(){const b=document.createElement("button");b.className="bb";b.textContent=L[Math.floor(Math.random()*L.length)];b.setAttribute("aria-label","Fruta flotante: toque para reventarla");
   const r=Math.random();b.style.left=(r<.35?Math.random()*11:r<.7?87+Math.random()*10:Math.random()*93)+"vw";
   b.style.animationDuration=(10+Math.random()*9)+"s";b.style.animationDelay=(-Math.random()*14)+"s";
-  b.onclick=()=>{b.style.top=b.getBoundingClientRect().top+"px";b.classList.add("pp");n++;pn.textContent=n;if(n%10==0)celebra();setTimeout(()=>{b.remove();spawn()},520)};fl.appendChild(b)}
- for(let i=0;i<14;i++)spawn()})();
+  b.onclick=()=>{const q=b.getBoundingClientRect();b.style.top=q.top+"px";b.classList.add("pp");n++;pn.textContent=n;pn.classList.remove("bump");void pn.offsetWidth;pn.classList.add("bump");burst(q.left+q.width/2,q.top);if(n%10==0)celebra();setTimeout(()=>{b.remove();spawn()},520)};fl.appendChild(b)}
+ function burst(x,y){const t=document.createElement("span");t.className="pf";t.textContent="+1";t.style.left=(x-10)+"px";t.style.top=y+"px";document.body.appendChild(t);setTimeout(()=>t.remove(),850);
+  for(let i=0;i<6;i++){const p=document.createElement("span"),a=i*Math.PI/3;p.className="sp";p.textContent="✨";p.style.left=x+"px";p.style.top=(y+14)+"px";p.style.setProperty("--dx",Math.round(Math.cos(a)*34)+"px");p.style.setProperty("--dy",Math.round(Math.sin(a)*34)+"px");document.body.appendChild(p);setTimeout(()=>p.remove(),650)}}
+ for(let i=0;i<(innerWidth<700?8:14);i++)spawn()})();
 
 const DATOS=[["🥕","El color naranja de la zanahoria viene del betacaroteno, un nutriente que el cuerpo aprovecha."],["💧","Más de la mitad del cuerpo de un niño es agua. ¡Por eso hay que tomar agua todos los días!"],["🌽","El maíz, la papa y el tomate nacieron en América. ¡Son parte de nuestra herencia!"],["🥦","El brócoli, la coliflor y el repollo son de la misma familia de plantas."],["🧠","El cerebro gasta mucha energía: comer bien ayuda a concentrarse en clase."],["💃","Bailar, saltar y reír también cuentan como actividad física."],["🌾","La quinua, el chocho y la mashua son alimentos andinos muy nutritivos."],["🍌","El banano aporta energía rápida y potasio, y viene en su propio envase."],["😴","Mientras dormimos, el cuerpo libera la hormona que ayuda a crecer. ¡Dormir bien también cuenta!"],["🫘","Las lentejas, el fréjol y las habas aportan proteína y hierro."],["🥑","El aguacate tiene grasas saludables que cuidan el corazón."],["🍽️","Comer despacio y sin pantallas ayuda a notar cuándo ya estamos llenos."]];
 function datos(){const jg=$("#jg");let n=0;const tx=()=>"Toque cada tarjeta para descubrir un dato. Descubiertos: "+n+" de "+DATOS.length;
