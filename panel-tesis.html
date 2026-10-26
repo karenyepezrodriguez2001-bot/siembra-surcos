@@ -30,6 +30,7 @@ tr.avg td{background:var(--gl);font-weight:bold}
 .go button{margin:0;text-align:left;background:var(--gl);color:#1f4d33;border:1px solid var(--b);font-weight:normal;padding:12px}.go button b{display:block;color:var(--g);margin-bottom:2px}
 .bt{margin-top:12px;padding:10px;background:#f7faf8;border:1px dashed var(--b);border-radius:8px}
 .pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;background:var(--gl);color:var(--g)}.pill.w{background:#fdeed7;color:#8a5200}.pill.n{background:#eee;color:#666}
+.res{background:var(--gl);border-radius:8px;padding:10px;margin:10px 0}
 @media(max-width:600px){.bar{grid-template-columns:1fr}}
 </style></head><body>
 <header><h1>Panel de la investigadora</h1><p>Campaña “Siembra hábitos, cosecha salud” · acceso privado</p></header>
@@ -82,7 +83,7 @@ const AV=c=>({avg:1,c});
 const buscador=()=>`<input id="bs" type="search" placeholder="Buscar por código o nombre…" value="${esc(BUSCA)}" oninput="BUSCA=this.value;render();const b=$('#bs');b.focus();b.setSelectionRange(b.value.length,b.value.length)">`;
 const sub=l=>`<div class="sub">${l.map(x=>`<button class="${SUB==x[0]?"on":""}" onclick="SUB='${x[0]}';render()">${x[1]}</button>`).join("")}</div>`;
 const TABS=[["inicio","🏠 Inicio"],["part","👥 Participantes"],["avance","📈 Avance"],["conoc","🧠 Conocimientos"],["hab","🌱 Hábitos"],["sat","⭐ Satisfacción"],["rec","🔔 Recordatorios"]];
-function go(t){TAB=t;SUB={conoc:"pre",hab:"1"}[t]||"";BUSCA="";render();window.scrollTo(0,0)}
+function go(t){TAB=t;SUB={conoc:"pre",hab:"1"}[t]||"";BUSCA="";render();window.scrollTo(0,0);if(t=="rec")cargarEstado()}
 function render(){
  nav.innerHTML=`<div class="tabs">${TABS.map(t=>`<button class="${TAB==t[0]?"on":""}" onclick="go('${t[0]}')">${t[1]}</button>`).join("")}<button class="s" style="margin-left:auto" onclick="cargar()">↻ Actualizar</button><button class="s" onclick="salirP()">Cerrar sesión</button></div>`;
  app.innerHTML=({inicio:vInicio,part:vPart,avance:vAvance,conoc:vConoc,hab:vHab,sat:vSat,rec:vRec})[TAB]()+`<p class="step">Datos actualizados: ${GEN?new Date(GEN).toLocaleString("es-EC"):"–"}</p>`}
@@ -156,15 +157,47 @@ const pend=(f,n)=>n==1?!(f.pre&&hab(f,1)):n==4?!(hab(f,4)&&f.post&&f.sat):!hab(f
 const tel=w=>{let d=(w||"").replace(/\D/g,"");if(!d)return"";if(d.startsWith("593"))return d;if(d.startsWith("0"))d=d.slice(1);return"593"+d};
 const texto=(n,f)=>`${f&&f.nombre?"Estimado/a "+f.nombre:"Estimada familia de Surcos"}: ${MSG[n]}${f?` Su código: ${f.codigo}.`:""} Enlace: ${base()}`;
 const L2=()=>F.filter(f=>!RP||pend(f,RW));
-function vRec(){const n=RW,L=L2(),s=SEM.find(x=>x.numero==n);
- return `<div class="card"><h2>Recordatorios semanales</h2><p class="step">Elija la semana y marque “solo pendientes” para escribir únicamente a quienes aún no completaron esa semana.${s?` Semana ${n}: abre el ${esc(s.fecha_apertura)} y cierra el ${esc(s.fecha_cierre)}.`:""}</p>
- <label>Semana: <select onchange="RW=+this.value;render()">${[1,2,3,4].map(i=>`<option value="${i}" ${i==n?"selected":""}>Semana ${i}</option>`).join("")}</select></label>
- <label style="margin-left:14px"><input type="checkbox" ${RP?"checked":""} onchange="RP=this.checked;render()"> Solo pendientes</label>
+let GAS="",ESTADO={},RES="",FORZAR=false,OCUP=false,VK="";
+try{GAS=localStorage.getItem("surcos_gas")||""}catch(e){}
+const clv=()=>RW+"|"+RP+"|"+FORZAR;
+function guardarGas(){const v=$("#gas").value.trim();
+ if(v&&!/^https:\/\/script\.google\.com\/.+\/exec$/.test(v)){RES='<div class="err">El enlace debe empezar con https://script.google.com/ y terminar en /exec.</div>';return render()}
+ GAS=v;try{localStorage.setItem("surcos_gas",v)}catch(e){}RES="";VK="";ESTADO={};cargarEstado();render()}
+async function gas(o){if(!GAS)throw new Error("Falta el enlace del script de Google.");let r;
+ try{r=await fetch(GAS,{method:"POST",body:JSON.stringify(Object.assign({clave:CLAVE},o))})}catch(e){throw new Error("No se pudo conectar con el script de Google. Revise el enlace y su internet.")}
+ let d;try{d=await r.json()}catch(e){throw new Error("Respuesta no válida del script. Revise que esté implementado como aplicación web con acceso para “Cualquier persona”.")}
+ if(!d.ok)throw new Error(d.error||"Error del script");return d}
+async function cargarEstado(){if(!GAS)return;try{const d=await gas({accion:"estado"});ESTADO=d.log||{};if(TAB=="rec")render()}catch(e){}}
+function resumen(d,acc){const o=d.omitidos||{},n=x=>esc(x==null?0:x),
+ om=`${n(o.completaron)} ya completaron · ${n(o.yaEnviado)} ya recibieron este aviso · ${n(o.reciente)} recibieron otro correo hace menos de ${n(d.diasMin)} días · ${n(o.sinCorreo)} sin correo`;
+ const tipo=d.tipo=="pendientes"?"solo pendientes":"aviso a todos",sim=d.simulado?'<p class="step"><b>Modo simulación activo en el script</b> (SIMULAR: true): no se envía ni se anota nada.</p>':"";
+ if(acc=="vista")return `<div class="res">Se enviarían <b>${n(d.aEnviar)}</b> correos · Semana ${n(d.semana)} · ${tipo}.</div><p class="step">Se omiten: ${om}.</p>${sim}<p class="step">Cuota diaria restante de Gmail: ${n(d.cuota)}.</p>`;
+ return `<div class="res">${d.simulado?"SIMULACIÓN · se habrían enviado":"Correos enviados"}: <b>${n(d.enviados)}</b> · Semana ${n(d.semana)} · ${tipo}.</div>${(d.fallidos||[]).length?`<div class="err">No se pudo enviar a: ${d.fallidos.map(esc).join(", ")}</div>`:""}${d.cuotaAgotada?'<div class="err">Se alcanzó la cuota diaria de Gmail. El resto quedó sin enviar; vuelva a intentarlo mañana (no se duplicarán los ya enviados).</div>':""}<p class="step">Se omitieron: ${om}.</p>${sim}`}
+async function envio(acc){if(OCUP)return;
+ if(acc=="enviar"&&!confirm("¿Enviar ahora los correos de la Semana "+RW+"? Esta acción no se puede deshacer."))return;
+ OCUP=true;RES='<p class="step">Procesando…</p>';render();
+ try{const d=await gas({accion:acc,semana:RW,soloPendientes:RP,forzar:FORZAR});RES=resumen(d,acc);VK=acc=="vista"&&d.aEnviar>0?clv():"";if(acc=="enviar"){VK="";await cargarEstado()}}
+ catch(e){RES=`<div class="err">${esc(e.message)}</div>`;VK=""}
+ OCUP=false;render()}
+function vRec(){const n=RW,L=L2(),s=SEM.find(x=>x.numero==n),ult=f=>{const e=ESTADO[f.codigo];return e&&e.u?fecha(e.u+"T12:00:00"):(GAS?"Nunca":"–")},ok=VK&&VK==clv();
+ return `<div class="card"><h2>Recordatorios semanales</h2><p class="step">Elija la semana y marque “solo pendientes” para escribir únicamente a quienes aún no completaron esa semana. Esta selección vale para el correo y para el WhatsApp.${s?` Semana ${n}: abre el ${esc(s.fecha_apertura)} y cierra el ${esc(s.fecha_cierre)}.`:""}</p>
+ <label>Semana: <select onchange="RW=+this.value;VK='';RES='';render()">${[1,2,3,4].map(i=>`<option value="${i}" ${i==n?"selected":""}>Semana ${i}</option>`).join("")}</select></label>
+ <label style="margin-left:14px"><input type="checkbox" ${RP?"checked":""} onchange="RP=this.checked;VK='';RES='';render()"> Solo pendientes</label></div>
+ <div class="card"><h2>📧 Envío por correo desde su Gmail</h2>
+ ${GAS?`<p class="step">Se enviará a las familias de la <b>Semana ${n}</b>: ${RP?"las que aún no la completaron":"todas (aviso de que la semana está disponible)"}. El script no repite el mismo aviso en la misma semana ni escribe a quien recibió un correo hace menos de 2 días.</p>
+ <label style="font-weight:normal"><input type="checkbox" ${FORZAR?"checked":""} onchange="FORZAR=this.checked;VK='';RES='';render()"> Reenviar aunque ya se haya enviado este aviso o se haya escrito hace poco</label>${FORZAR?'<p class="step" style="color:#9b1c1c">Atención: así se puede repetir el correo a familias que ya lo recibieron.</p>':""}
+ <button ${OCUP?"disabled":""} onclick="envio('vista')">1. Ver a quiénes se enviaría</button>${ok?`<button ${OCUP?"disabled":""} onclick="envio('enviar')">2. Confirmar y enviar</button>`:""}`
+ :`<p class="step">Aún no hay un script de Google conectado. Pegue abajo el enlace de la aplicación web para activar el envío por correo.</p>`}
+ <div>${RES}</div>
+ <details ${GAS?"":"open"}><summary style="cursor:pointer;font-size:13px;color:var(--g)">Enlace del script de Google</summary>
+ <p class="step">En Apps Script: Implementar → Nueva implementación → Aplicación web → ejecutar como “Yo”, acceso “Cualquier persona”. Copie el enlace que termina en /exec.</p>
+ <input id="gas" type="url" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(GAS)}" style="width:100%;max-width:560px"><br><button class="s" onclick="guardarGas()">Guardar enlace</button></details></div>
+ <div class="card"><h2>💬 WhatsApp y lista de familias</h2>
  <p class="step"><b>Mensaje:</b> ${esc(texto(n,null))}</p>
  <button onclick="navigator.clipboard.writeText(texto(RW,null)).then(()=>this.nextElementSibling.textContent='Copiado ✓')">Copiar mensaje</button><span class="ok"></span>
  <button class="s" onclick="navigator.clipboard.writeText(L2().map(f=>f.correo).filter(Boolean).join(', ')).then(()=>this.nextElementSibling.textContent='Copiado ✓')">Copiar correos (${L.filter(f=>f.correo).length})</button><span class="ok"></span>
- <p class="step">Para el correo: pegue los correos en el campo <b>CCO</b> (copia oculta) para que las familias no vean los datos de las demás.</p>
- ${T(["Código","Nombre","Estado","WhatsApp","Correo"],L.map(f=>[f.codigo,dash(f.nombre),{h:pend(f,n)?'<span class="pill w">Pendiente</span>':'<span class="pill">Completó ✓</span>'},{h:tel(f.whatsapp)?`<a href="https://wa.me/${tel(f.whatsapp)}?text=${encodeURIComponent(texto(n,f))}" target="_blank" rel="noopener">Enviar WhatsApp</a>`:"–"},dash(f.correo)]),"Nadie pendiente en esta semana.")}</div>`}
+ <p class="step">Si envía correos a mano, péguelos en el campo <b>CCO</b> (copia oculta). Los WhatsApp se abren en su aplicación y usted los envía.</p>
+ ${T(["Código","Nombre","Estado","Último aviso por correo","WhatsApp","Correo"],L.map(f=>[f.codigo,dash(f.nombre),{h:pend(f,n)?'<span class="pill w">Pendiente</span>':'<span class="pill">Completó ✓</span>'},ult(f),{h:tel(f.whatsapp)?`<a href="https://wa.me/${tel(f.whatsapp)}?text=${encodeURIComponent(texto(n,f))}" target="_blank" rel="noopener">Enviar WhatsApp</a>`:"–"},dash(f.correo)]),"Nadie pendiente en esta semana.")}</div>`}
 
 login();
 </script></body></html>
